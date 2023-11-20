@@ -1,0 +1,8 @@
+/debug_true
+/debug_false
+
+/.vs
+/.agde
+/bin-agde
+/obj-agde
+/*.vcxproj.user
