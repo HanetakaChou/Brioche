@@ -1,0 +1,5 @@
+EXPORTS
+	brx_init_vk_device
+	brx_destroy_vk_device
+	brx_init_d3d12_device
+	brx_destroy_d3d12_device
