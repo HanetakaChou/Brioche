@@ -137,6 +137,7 @@ public:
 
 private:
     BRX_BACKEND_NAME get_backend_name() const override;
+    bool is_ray_tracing_supported() const override;
     brx_graphics_queue *create_graphics_queue() const override;
     void destroy_graphics_queue(brx_graphics_queue *graphics_queue) const override;
     brx_upload_queue *create_upload_queue() const override;
@@ -296,7 +297,7 @@ public:
     VkSemaphore get_acquire_next_image_semaphore() const;
     VkSemaphore get_queue_submit_semaphore() const;
     void begin() override;
-    void acquire(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *storage_asset_buffers, uint32_t sampled_asset_image_count, brx_sampled_asset_image const *const *sampled_asset_images, uint32_t const *dst_mip_levels, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *compacted_bottom_level_acceleration_structures) override;
+    void acquire(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *storage_asset_buffers, uint32_t sampled_asset_image_subresource_count, BRX_SAMPLED_ASSET_IMAGE_SUBRESOURCE const *sampled_asset_image_subresources, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *compacted_bottom_level_acceleration_structures) override;
     void begin_debug_utils_label(char const *label_name) override;
     void end_debug_utils_label() override;
     void begin_render_pass(brx_render_pass const *render_pass, brx_frame_buffer const *frame_buffer, uint32_t width, uint32_t height, uint32_t color_clear_value_count, float const (*color_clear_values)[4], float const *depth_clear_value, uint8_t const *stencil_clear_value) override;
@@ -364,7 +365,7 @@ public:
     void build_non_compacted_bottom_level_acceleration_structure(brx_non_compacted_bottom_level_acceleration_structure *non_compacted_bottom_level_acceleration_structure, uint32_t bottom_level_acceleration_structure_geometry_count, BRX_BOTTOM_LEVEL_ACCELERATION_STRUCTURE_GEOMETRY const *bottom_level_acceleration_structure_geometries, brx_scratch_buffer *scratch_buffer, brx_compacted_bottom_level_acceleration_structure_size_query_pool *compacted_bottom_level_acceleration_structure_size_query_pool, uint32_t query_index) override;
     void build_non_compacted_bottom_level_acceleration_structure_pass_store(uint32_t acceleration_structure_build_input_read_only_buffer_count, brx_acceleration_structure_build_input_read_only_buffer const *const *acceleration_structure_build_input_read_only_buffers) override;
     void compact_bottom_level_acceleration_structure(brx_compacted_bottom_level_acceleration_structure *destination_compacted_bottom_level_acceleration_structure, brx_non_compacted_bottom_level_acceleration_structure *source_non_compacted_bottom_level_acceleration_structure) override;
-    void release(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *storage_asset_buffers, uint32_t sampled_asset_image_count, brx_sampled_asset_image const *const *sampled_asset_images, uint32_t const *dst_mip_levels, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *compacted_bottom_level_acceleration_structures) override;
+    void release(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *storage_asset_buffers, uint32_t sampled_asset_image_subresource_count, BRX_SAMPLED_ASSET_IMAGE_SUBRESOURCE const *sampled_asset_image_subresources, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *compacted_bottom_level_acceleration_structures) override;
     void end() override;
 };
 

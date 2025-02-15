@@ -21,13 +21,13 @@
 
 #if defined(__linux__)
 
-extern brx_device *brx_init_vk_device(void *wsi_connection, bool support_ray_tracing);
+extern brx_device *brx_create_vk_device(void *wsi_connection, bool support_ray_tracing);
 
 extern void brx_destroy_vk_device(brx_device *wrapped_device);
 
-extern "C" brx_device *brx_init_device(void *wsi_connection, bool support_ray_tracing)
+extern "C" brx_device *brx_create_device(void *wsi_connection, bool support_ray_tracing)
 {
-    return brx_init_vk_device(wsi_connection, support_ray_tracing);
+    return brx_create_vk_device(wsi_connection, support_ray_tracing);
 }
 
 extern "C" void brx_destroy_device(brx_device *wrapped_device)
@@ -46,24 +46,24 @@ extern "C" void brx_destroy_device(brx_device *wrapped_device)
 #include <sdkddkver.h>
 #include <windows.h>
 
-extern brx_device *brx_init_d3d12_device(void *wsi_connection, bool support_ray_tracing);
+extern brx_device *brx_create_d3d12_device(void *wsi_connection, bool support_ray_tracing);
 
 extern void brx_destroy_d3d12_device(brx_device *device);
 
-extern brx_device *brx_init_vk_device(void *wsi_connection, bool support_ray_tracing);
+extern brx_device *brx_create_vk_device(void *wsi_connection, bool support_ray_tracing);
 
 extern void brx_destroy_vk_device(brx_device *wrapped_device);
 
-extern "C" brx_device *brx_init_device(void *wsi_connection, bool support_ray_tracing)
+extern "C" brx_device *brx_create_device(void *wsi_connection, bool support_ray_tracing)
 {
     // we can always assume Direct3D is supported better than vulkan on windows
     if ((NULL != LoadLibraryW(L"D3D12.dll")) && (NULL != LoadLibraryW(L"DXGI.dll")))
     {
-        return brx_init_d3d12_device(wsi_connection, support_ray_tracing);
+        return brx_create_d3d12_device(wsi_connection, support_ray_tracing);
     }
     else if (NULL != LoadLibraryW(L"vulkan-1.dll"))
     {
-        return brx_init_vk_device(wsi_connection, support_ray_tracing);
+        return brx_create_vk_device(wsi_connection, support_ray_tracing);
     }
     else
     {

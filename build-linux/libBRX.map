@@ -17,7 +17,7 @@
 
 {
     global:
-        brx_init_device;
+        brx_create_device;
         brx_destroy_device;
     local:
         *;

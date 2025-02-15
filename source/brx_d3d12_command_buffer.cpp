@@ -96,9 +96,9 @@ void brx_d3d12_graphics_command_buffer::begin()
     this->m_current_vertex_buffer_strides.clear();
 }
 
-void brx_d3d12_graphics_command_buffer::acquire(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *wrapped_storage_asset_buffers, uint32_t sampled_asset_image_count, brx_sampled_asset_image const *const *wrapped_sampled_asset_images, uint32_t const *dst_mip_levels, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *wrapped_compacted_bottom_level_acceleration_structures)
+void brx_d3d12_graphics_command_buffer::acquire(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *wrapped_storage_asset_buffers, uint32_t sampled_asset_image_subresource_count, BRX_SAMPLED_ASSET_IMAGE_SUBRESOURCE const *wrapped_sampled_asset_image_subresources, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *wrapped_compacted_bottom_level_acceleration_structures)
 {
-    mcrt_vector<D3D12_RESOURCE_BARRIER> acquire_barriers(static_cast<size_t>(storage_asset_buffer_count + sampled_asset_image_count + compacted_bottom_level_acceleration_structure_count));
+    mcrt_vector<D3D12_RESOURCE_BARRIER> acquire_barriers(static_cast<size_t>(storage_asset_buffer_count + sampled_asset_image_subresource_count + compacted_bottom_level_acceleration_structure_count));
 
     for (uint32_t storage_asset_buffer_index = 0U; storage_asset_buffer_index < storage_asset_buffer_count; ++storage_asset_buffer_index)
     {
@@ -114,16 +114,16 @@ void brx_d3d12_graphics_command_buffer::acquire(uint32_t storage_asset_buffer_co
                 D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE}};
     }
 
-    for (uint32_t sampled_asset_image_index = 0U; sampled_asset_image_index < sampled_asset_image_count; ++sampled_asset_image_index)
+    for (uint32_t sampled_asset_image_subresource_index = 0U; sampled_asset_image_subresource_index < sampled_asset_image_subresource_count; ++sampled_asset_image_subresource_index)
     {
-        ID3D12Resource *const sampled_asset_image_resource = static_cast<brx_d3d12_sampled_asset_image const *>(wrapped_sampled_asset_images[sampled_asset_image_index])->get_resource();
+        ID3D12Resource *const sampled_asset_image_resource = static_cast<brx_d3d12_sampled_asset_image const *>(wrapped_sampled_asset_image_subresources[sampled_asset_image_subresource_index].m_sampled_asset_images)->get_resource();
 
-        acquire_barriers[storage_asset_buffer_count + sampled_asset_image_index] = D3D12_RESOURCE_BARRIER{
+        acquire_barriers[storage_asset_buffer_count + sampled_asset_image_subresource_index] = D3D12_RESOURCE_BARRIER{
             .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
             .Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
             .Transition = {
                 sampled_asset_image_resource,
-                dst_mip_levels[sampled_asset_image_index],
+                wrapped_sampled_asset_image_subresources[sampled_asset_image_subresource_index].m_mip_level,
                 D3D12_RESOURCE_STATE_COMMON,
                 D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE}};
     }
@@ -133,14 +133,14 @@ void brx_d3d12_graphics_command_buffer::acquire(uint32_t storage_asset_buffer_co
         ID3D12Resource *asset_acceleration_structure_buffer_resource = static_cast<brx_d3d12_compacted_bottom_level_acceleration_structure const *>(wrapped_compacted_bottom_level_acceleration_structures[compacted_bottom_level_acceleration_structure_index])->get_resource();
 
         // https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#synchronizing-acceleration-structure-memory-writesreads
-        acquire_barriers[storage_asset_buffer_count + sampled_asset_image_count + compacted_bottom_level_acceleration_structure_index] = D3D12_RESOURCE_BARRIER{
+        acquire_barriers[storage_asset_buffer_count + sampled_asset_image_subresource_count + compacted_bottom_level_acceleration_structure_index] = D3D12_RESOURCE_BARRIER{
             .Type = D3D12_RESOURCE_BARRIER_TYPE_UAV,
             .Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
             .UAV = {
                 asset_acceleration_structure_buffer_resource}};
     }
 
-    if (storage_asset_buffer_count > 0U || sampled_asset_image_count > 0U || compacted_bottom_level_acceleration_structure_count > 0U)
+    if (storage_asset_buffer_count > 0U || sampled_asset_image_subresource_count > 0U || compacted_bottom_level_acceleration_structure_count > 0U)
     {
         this->m_command_list->ResourceBarrier(static_cast<UINT>(acquire_barriers.size()), &acquire_barriers[0]);
     }
@@ -1360,9 +1360,9 @@ void brx_d3d12_upload_command_buffer::compact_bottom_level_acceleration_structur
     this->m_command_list->CopyRaytracingAccelerationStructure(destination_acceleration_structure_device_memory_range_base, source_acceleration_structure_device_memory_range_base, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_COMPACT);
 }
 
-void brx_d3d12_upload_command_buffer::release(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *wrapped_storage_asset_buffers, uint32_t sampled_asset_image_count, brx_sampled_asset_image const *const *wrapped_sampled_asset_images, uint32_t const *dst_mip_levels, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *wrapped_compacted_bottom_level_acceleration_structures)
+void brx_d3d12_upload_command_buffer::release(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *wrapped_storage_asset_buffers, uint32_t sampled_asset_image_subresource_count, BRX_SAMPLED_ASSET_IMAGE_SUBRESOURCE const *wrapped_sampled_asset_image_subresources, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *wrapped_compacted_bottom_level_acceleration_structures)
 {
-    mcrt_vector<D3D12_RESOURCE_BARRIER> release_barriers(static_cast<size_t>((!this->m_uma) ? (storage_asset_buffer_count + sampled_asset_image_count + compacted_bottom_level_acceleration_structure_count) : compacted_bottom_level_acceleration_structure_count));
+    mcrt_vector<D3D12_RESOURCE_BARRIER> release_barriers(static_cast<size_t>((!this->m_uma) ? (storage_asset_buffer_count + sampled_asset_image_subresource_count + compacted_bottom_level_acceleration_structure_count) : compacted_bottom_level_acceleration_structure_count));
 
     if (!this->m_uma)
     {
@@ -1380,16 +1380,16 @@ void brx_d3d12_upload_command_buffer::release(uint32_t storage_asset_buffer_coun
                     D3D12_RESOURCE_STATE_COMMON}};
         }
 
-        for (uint32_t sampled_asset_image_index = 0U; sampled_asset_image_index < sampled_asset_image_count; ++sampled_asset_image_index)
+        for (uint32_t sampled_asset_image_index = 0U; sampled_asset_image_index < sampled_asset_image_subresource_count; ++sampled_asset_image_index)
         {
-            ID3D12Resource *const sampled_asset_image = static_cast<brx_d3d12_sampled_asset_image const *>(wrapped_sampled_asset_images[sampled_asset_image_index])->get_resource();
+            ID3D12Resource *const sampled_asset_image = static_cast<brx_d3d12_sampled_asset_image const *>(wrapped_sampled_asset_image_subresources[sampled_asset_image_index].m_sampled_asset_images)->get_resource();
 
             release_barriers[storage_asset_buffer_count + sampled_asset_image_index] = D3D12_RESOURCE_BARRIER{
                 .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
                 .Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
                 .Transition = {
                     sampled_asset_image,
-                    dst_mip_levels[sampled_asset_image_index],
+                    wrapped_sampled_asset_image_subresources[sampled_asset_image_index].m_mip_level,
                     D3D12_RESOURCE_STATE_COPY_DEST,
                     D3D12_RESOURCE_STATE_COMMON}};
         }
@@ -1400,7 +1400,7 @@ void brx_d3d12_upload_command_buffer::release(uint32_t storage_asset_buffer_coun
         ID3D12Resource *const unwrapped_compacted_bottom_level_acceleration_structure_buffer_resource = static_cast<brx_d3d12_compacted_bottom_level_acceleration_structure const *>(wrapped_compacted_bottom_level_acceleration_structures[compacted_bottom_level_acceleration_structure_index])->get_resource();
 
         // https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#synchronizing-acceleration-structure-memory-writesreads
-        release_barriers[(!this->m_uma) ? (storage_asset_buffer_count + sampled_asset_image_count + compacted_bottom_level_acceleration_structure_index) : compacted_bottom_level_acceleration_structure_index] = D3D12_RESOURCE_BARRIER{
+        release_barriers[(!this->m_uma) ? (storage_asset_buffer_count + sampled_asset_image_subresource_count + compacted_bottom_level_acceleration_structure_index) : compacted_bottom_level_acceleration_structure_index] = D3D12_RESOURCE_BARRIER{
             .Type = D3D12_RESOURCE_BARRIER_TYPE_UAV,
             .Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
             .UAV = {

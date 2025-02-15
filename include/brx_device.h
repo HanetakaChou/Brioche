@@ -205,6 +205,12 @@ struct BRX_RENDER_PASS_DEPTH_STENCIL_ATTACHMENT
     BRX_RENDER_PASS_DEPTH_STENCIL_ATTACHMENT_STORE_OPERATION store_operation;
 };
 
+struct BRX_SAMPLED_ASSET_IMAGE_SUBRESOURCE
+{
+    brx_sampled_asset_image const *m_sampled_asset_images;
+    uint32_t m_mip_level;
+};
+
 struct BRX_BOTTOM_LEVEL_ACCELERATION_STRUCTURE_GEOMETRY
 {
     bool force_closest_hit;
@@ -234,7 +240,7 @@ struct BRX_TOP_LEVEL_ACCELERATION_STRUCTURE_INSTANCE
 //     xcb_connection_t *m_connection;
 //     xcb_visualid_t m_visual_id;
 // };
-extern "C" brx_device *brx_init_device(void *wsi_connection, bool support_ray_tracing);
+extern "C" brx_device *brx_create_device(void *wsi_connection, bool support_ray_tracing);
 
 extern "C" void brx_destroy_device(brx_device *device);
 
@@ -242,6 +248,7 @@ class brx_device
 {
 public:
     virtual BRX_BACKEND_NAME get_backend_name() const = 0;
+    virtual bool is_ray_tracing_supported() const = 0;
     virtual brx_graphics_queue *create_graphics_queue() const = 0;
     virtual void destroy_graphics_queue(brx_graphics_queue *graphics_queue) const = 0;
     virtual brx_upload_queue *create_upload_queue() const = 0;
@@ -343,7 +350,7 @@ class brx_graphics_command_buffer
 {
 public:
     virtual void begin() = 0;
-    virtual void acquire(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *storage_asset_buffers, uint32_t sampled_asset_image_count, brx_sampled_asset_image const *const *sampled_asset_images, uint32_t const *dst_mip_levels, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *compacted_bottom_level_acceleration_structures) = 0;
+    virtual void acquire(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *storage_asset_buffers, uint32_t sampled_asset_image_subresource_count, BRX_SAMPLED_ASSET_IMAGE_SUBRESOURCE const *sampled_asset_image_subresources, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *compacted_bottom_level_acceleration_structures) = 0;
     virtual void begin_debug_utils_label(char const *label_name) = 0;
     virtual void end_debug_utils_label() = 0;
     virtual void begin_render_pass(brx_render_pass const *render_pass, brx_frame_buffer const *frame_buffer, uint32_t width, uint32_t height, uint32_t color_clear_value_count, float const (*color_clear_values)[4], float const *depth_clear_value, uint8_t const *stencil_clear_value) = 0;
@@ -385,7 +392,7 @@ public:
     // PBR BOOK V3: ["4.3.4 Compact BVH For Traversal"](https://pbr-book.org/3ed-2018/Primitives_and_Intersection_Acceleration/Bounding_Volume_Hierarchies#CompactBVHForTraversal)
     // PBR BOOK V4: ["7.3.4 Compact BVH for Traversal"](https://pbr-book.org/4ed/Primitives_and_Intersection_Acceleration/Bounding_Volume_Hierarchies#CompactBVHforTraversal)
     virtual void compact_bottom_level_acceleration_structure(brx_compacted_bottom_level_acceleration_structure *destination_compacted_bottom_level_acceleration_structure, brx_non_compacted_bottom_level_acceleration_structure *source_non_compacted_bottom_level_acceleration_structure) = 0;
-    virtual void release(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *storage_asset_buffers, uint32_t sampled_asset_image_count, brx_sampled_asset_image const *const *sampled_asset_images, uint32_t const *dst_mip_levels, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *compacted_bottom_level_acceleration_structures) = 0;
+    virtual void release(uint32_t storage_asset_buffer_count, brx_storage_asset_buffer const *const *storage_asset_buffers, uint32_t sampled_asset_image_subresource_count, BRX_SAMPLED_ASSET_IMAGE_SUBRESOURCE const *sampled_asset_image_subresources, uint32_t compacted_bottom_level_acceleration_structure_count, brx_compacted_bottom_level_acceleration_structure const *const *compacted_bottom_level_acceleration_structures) = 0;
     virtual void end() = 0;
 };
 

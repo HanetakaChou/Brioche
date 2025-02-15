@@ -18,9 +18,10 @@
 #ifndef _BRX_SAMPLED_ASSET_IMAGE_FORMAT_H_
 #define _BRX_SAMPLED_ASSET_IMAGE_FORMAT_H_ 1
 
-#include <stddef.h>
-#include <stdint.h>
-#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <cassert>
+#include <algorithm>
 
 enum BRX_SAMPLED_ASSET_IMAGE_FORMAT
 {
@@ -47,6 +48,7 @@ static inline uint32_t brx_get_format_aspect_count(BRX_SAMPLED_ASSET_IMAGE_FORMA
     switch (format)
     {
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_R8G8B8A8_UNORM:
+    case BRX_SAMPLED_ASSET_IMAGE_FORMAT_R8G8B8A8_SRGB:
         return 1U;
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_BC7_UNORM_BLOCK:
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_BC7_SRGB_BLOCK:
@@ -65,6 +67,7 @@ static inline uint32_t brx_get_format_block_size(BRX_SAMPLED_ASSET_IMAGE_FORMAT 
     switch (format)
     {
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_R8G8B8A8_UNORM:
+    case BRX_SAMPLED_ASSET_IMAGE_FORMAT_R8G8B8A8_SRGB:
         return 4U;
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_BC7_UNORM_BLOCK:
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_BC7_SRGB_BLOCK:
@@ -83,6 +86,7 @@ static inline uint32_t brx_get_format_block_width(BRX_SAMPLED_ASSET_IMAGE_FORMAT
     switch (format)
     {
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_R8G8B8A8_UNORM:
+    case BRX_SAMPLED_ASSET_IMAGE_FORMAT_R8G8B8A8_SRGB:
         return 1U;
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_BC7_UNORM_BLOCK:
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_BC7_SRGB_BLOCK:
@@ -101,6 +105,7 @@ static inline uint32_t brx_get_format_block_height(BRX_SAMPLED_ASSET_IMAGE_FORMA
     switch (format)
     {
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_R8G8B8A8_UNORM:
+    case BRX_SAMPLED_ASSET_IMAGE_FORMAT_R8G8B8A8_SRGB:
         return 1U;
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_BC7_UNORM_BLOCK:
     case BRX_SAMPLED_ASSET_IMAGE_FORMAT_BC7_SRGB_BLOCK:
@@ -246,21 +251,9 @@ static inline uint32_t brx_sampled_asset_image_import_calculate_subresource_memc
                 staging_upload_buffer_offset += surface_size;
                 assert((staging_upload_buffer_base_offset + total_bytes) == staging_upload_buffer_offset);
 
-                w = w >> 1U;
-                h = h >> 1U;
-                d = d >> 1U;
-                if (0U == w)
-                {
-                    w = 1U;
-                }
-                if (0U == h)
-                {
-                    h = 1U;
-                }
-                if (0U == d)
-                {
-                    d = 1U;
-                }
+                w = std::max(1U, w >> 1U);
+                h = std::max(1U, h >> 1U);
+                d = std::max(1U, d >> 1U);
             }
         }
     }

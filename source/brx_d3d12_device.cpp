@@ -24,7 +24,7 @@
 static constexpr DXGI_FORMAT const g_preferred_swap_chain_image_format = DXGI_FORMAT_R8G8B8A8_UNORM;
 static constexpr uint32_t const g_preferred_swap_chain_image_count = 3U;
 
-extern brx_device *brx_init_d3d12_device(void *wsi_connection, bool support_ray_tracing)
+extern brx_device *brx_create_d3d12_device(void *wsi_connection, bool support_ray_tracing)
 {
     void *new_unwrapped_device_base = mcrt_malloc(sizeof(brx_d3d12_device), alignof(brx_d3d12_device));
     assert(NULL != new_unwrapped_device_base);
@@ -669,6 +669,11 @@ brx_d3d12_device::~brx_d3d12_device()
 BRX_BACKEND_NAME brx_d3d12_device::get_backend_name() const
 {
     return BRX_BACKEND_NAME_D3D12;
+}
+
+bool brx_d3d12_device::is_ray_tracing_supported() const
+{
+    return this->m_support_ray_tracing;
 }
 
 brx_graphics_queue *brx_d3d12_device::create_graphics_queue() const

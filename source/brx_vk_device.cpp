@@ -58,7 +58,7 @@ static inline uint32_t _internal_find_lowest_memory_type_index(struct VkPhysical
 
 static inline void _internal_pause();
 
-extern brx_device *brx_init_vk_device(void *wsi_connection, bool support_ray_tracing)
+extern brx_device *brx_create_vk_device(void *wsi_connection, bool support_ray_tracing)
 {
     void *new_unwrapped_device_base = mcrt_malloc(sizeof(brx_vk_device), alignof(brx_vk_device));
     assert(NULL != new_unwrapped_device_base);
@@ -2063,6 +2063,11 @@ brx_vk_device::~brx_vk_device()
 BRX_BACKEND_NAME brx_vk_device::get_backend_name() const
 {
     return BRX_BACKEND_NAME_VK;
+}
+
+bool brx_vk_device::is_ray_tracing_supported() const
+{
+    return this->m_support_ray_tracing;
 }
 
 brx_graphics_queue *brx_vk_device::create_graphics_queue() const
